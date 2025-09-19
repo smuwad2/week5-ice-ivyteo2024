@@ -31,18 +31,33 @@
             <p class="text-center">No items</p>
         </div>
     </div>
-    
+
     <script>
         function getCategories() {
             // Fetch categories from the server using Axios
             // and display them in the select element
             // url: http://localhost:3010/categories
+            axios.get("/categories",)
+
+                .then(response => {
+                    console.log(response.data)
+                    const categories = response.data;
+                    showCategories(categories);
+                })
 
         }
 
         function showCategories(categories) {
             // Display the categories in the select element
-            
+            const selectelem = document.getElementById("selectCategory");
+
+            for (const c of categories) {
+                console.log(c)
+                const optionelem = document.createElement("option")
+                optionelem.innerText = c;
+                selectelem.appendChild(optionelem);
+            }
+
         }
 
         function getItems() {
@@ -51,15 +66,69 @@
             // If "All" is chosen, fetch all items
             // If a specific category is chosen, fetch items for that category
             // url: http://localhost:3010/items?category=categoryName
-            
+            const categorySelect = document.getElementById("selectCategory");
+
+            const selectedCategory = categorySelect.value;
+            console.log(selectedCategory)
+            // Do nothing if "To select"
+            if (selectedCategory === "select") return;
+
+            // Build the URL
+            let url = "/items";
+            if (selectedCategory !== "all") {
+                url += `?category=${selectedCategory}`;
+            }
+
+            // Fetch data from server
+            axios.get(url)
+                .then(response => {
+                    const data = response.data;
+                    showItems(data);
+                })
+                .catch(error => {
+                    console.error("Error fetching items:", error);
+                });
         }
-
         function showItems(items) {
-            // Display the items in the itemsList div
-            // Each item should be displayed in a bootstrap card format
-            // The display should be responsive 3 columns on large screens, 2 columns on medium screens, and 1 column on small screens
-            
 
+            console.log(items)//return a list of arrays of that categories
+            const itemsListDiv = document.getElementById("itemsList");
+            itemsListDiv.innerHTML = ""; // clear previous items
+
+            if (!items || items.length === 0) {
+                itemsListDiv.innerHTML = `<p class="text-center">No items</p>`;
+                return;
+            }
+
+            for (const item of items) {
+                //define the width of each column within the row
+                // control how card are arrange per row
+                //if dh col and row then the card div will take the full width of the container by default because block element take full width
+                const colDiv = document.createElement("div");
+                colDiv.className = "col-lg-4 col-md-6 col-sm-12 mb-3"; // responsive columns
+
+                const cardDiv = document.createElement("div");
+                cardDiv.className = "card h-100";
+
+                const cardBody = document.createElement("div");
+                cardBody.className = "card-body";
+
+                const title = document.createElement("h5");
+                title.className = "card-title ";
+                title.style.textAlign = "center";  
+                title.innerText = item["name"];
+
+                const price = document.createElement("p");
+                price.className = "card-text text-center"; //can put in class heree if we use bootstrap
+                price.innerText = "Price: $" + item["price"];
+
+                // Append elements
+                cardBody.appendChild(title);
+                cardBody.appendChild(price);
+                cardDiv.appendChild(cardBody);
+                colDiv.appendChild(cardDiv);
+                itemsListDiv.appendChild(colDiv);
+            }
         }
 
     </script>
